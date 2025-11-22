@@ -16,4 +16,4 @@ jobs:
       - name: Check Nix formatting
         run: nix fmt -- --check .
       - name: Run pre-commit checks
-        run: nix flake check
+        run: nix flake check -L
