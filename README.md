@@ -65,6 +65,21 @@ This permits **all** unfree packages system-wide without explicit review.
 
 ## Usage
 
+### Quick Start
+
+Try Claude Code without installation:
+
+```bash
+# Run Claude Code directly (requires --impure for unfree licence)
+NIXPKGS_ALLOW_UNFREE=1 nix run --impure github:ryoppippi/claude-code-overlay
+
+# Or enter a shell with Claude Code available
+NIXPKGS_ALLOW_UNFREE=1 nix shell --impure github:ryoppippi/claude-code-overlay
+claude --version
+```
+
+To avoid typing `NIXPKGS_ALLOW_UNFREE=1 --impure` every time, configure unfree package allowance as described in the [Unfree Licence Notice](#unfree-licence-notice) section above.
+
 ### With Flakes
 
 #### Run directly
