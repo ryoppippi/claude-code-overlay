@@ -31,16 +31,19 @@
       installPhase = ''
         runHook preInstall
 
-        echo "Verifying binary version before installation..."
+        mkdir -p $out/bin
+        install -m755 $src $out/bin/.claude-unwrapped
 
-        # Copy binary to temporary location and check version
-        tmp_binary=$(mktemp)
-        cp $src $tmp_binary
-        chmod +x $tmp_binary
+        runHook postInstall
+      '';
 
-        version_output=$($tmp_binary --version 2>&1 || true)
+      # Verify version and wrap binary after autoPatchelfHook (for Linux) has run
+      postFixup = ''
+        echo "Verifying binary version before wrapping..."
+
+        # Check version of the raw binary (after autoPatchelfHook but before wrapping)
+        version_output=$($out/bin/.claude-unwrapped --version 2>&1 || true)
         detected_version=$(echo "$version_output" | ${pkgs.gnugrep}/bin/grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
-        rm -f $tmp_binary
 
         if [ -z "$detected_version" ]; then
           echo "Error: Could not determine claude version from binary"
@@ -59,20 +62,13 @@
 
         echo "✓ Version check passed: binary reports $detected_version (manifest: ${version})"
 
-        mkdir -p $out/bin
-        install -m755 $src $out/bin/.claude-wrapped
-
-        runHook postInstall
-      '';
-
-      # Wrap the binary with environment variables to disable telemetry and auto-updates
-      postFixup = ''
-        wrapProgram $out/bin/.claude-wrapped \
+        # Now wrap the binary with environment variables
+        wrapProgram $out/bin/.claude-unwrapped \
           --set DISABLE_AUTOUPDATER 1 \
           --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
           --set DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
           --set DISABLE_TELEMETRY 1
-        mv $out/bin/.claude-wrapped $out/bin/claude
+        mv $out/bin/.claude-unwrapped $out/bin/claude
       '';
 
       passthru = {
