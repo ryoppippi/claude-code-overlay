@@ -40,15 +40,13 @@
         mv $out/bin/.claude-wrapped $out/bin/claude
       '';
 
-      # Disable version check: The distributed binary is version 1.3.2 (last 1.x release)
-      # which self-updates to 2.x on first run. Since /nix/store is read-only, the
-      # self-update cannot occur, so the binary remains at 1.3.2 but functions correctly.
-      # The official installer works around this by running `claude install` which downloads
-      # the actual 2.x binary, but this requires network access during build.
-      doInstallCheck = false;
-      # Prevent all install check phases including versionCheckPhase
-      installCheckPhase = "echo 'Skipping install check'";
-      dontCheck = true;
+      doInstallCheck = true;
+      nativeInstallCheckInputs = with pkgs; [
+        writableTmpDirAsHomeHook
+        versionCheckHook
+      ];
+      versionCheckKeepEnvironment = ["HOME"];
+      versionCheckProgramArg = "--version";
 
       passthru = {
         updateScript = ./update;
