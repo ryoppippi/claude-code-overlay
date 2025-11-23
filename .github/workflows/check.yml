@@ -70,3 +70,7 @@ jobs:
           fi
 
           echo "✅ Version check passed: $ACTUAL_VERSION"
+      - name: Display full version output
+        run: |
+          echo "Full version output from built binary:"
+          ./result/bin/claude --version
