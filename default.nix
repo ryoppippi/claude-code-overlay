@@ -31,10 +31,10 @@
         mkdir -p $out/bin
         install -m755 $src $out/bin/.claude-wrapped
       '';
-      # Wrap the binary with environment variables to disable telemetry and auto-updates
+      # Wrap the binary with environment variables to disable telemetry
+      # NOTE: DISABLE_AUTOUPDATER is intentionally not set to test actual binary version
       postFixup = ''
         wrapProgram $out/bin/.claude-wrapped \
-          --set DISABLE_AUTOUPDATER 1 \
           --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
           --set DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
           --set DISABLE_TELEMETRY 1
