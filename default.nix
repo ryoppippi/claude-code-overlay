@@ -10,7 +10,6 @@
     url,
     version,
     sha256,
-    actualBinaryVersion,
   }:
     pkgs.stdenv.mkDerivation {
       inherit version;
@@ -27,49 +26,27 @@
       dontUnpack = true;
       dontConfigure = true;
       dontBuild = true;
-
       installPhase = ''
-        runHook preInstall
-
         mkdir -p $out/bin
-        install -m755 $src $out/bin/.claude-unwrapped
-
-        runHook postInstall
+        install -m755 $src $out/bin/.claude-wrapped
       '';
-
-      # Verify version and wrap binary after autoPatchelfHook (for Linux) has run
+      # Wrap the binary with environment variables to disable telemetry and auto-updates
       postFixup = ''
-        echo "Verifying binary version before wrapping..."
-
-        # Check version of the raw binary (after autoPatchelfHook but before wrapping)
-        version_output=$($out/bin/.claude-unwrapped --version 2>&1 || true)
-        detected_version=$(echo "$version_output" | ${pkgs.gnugrep}/bin/grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
-
-        if [ -z "$detected_version" ]; then
-          echo "Error: Could not determine claude version from binary"
-          echo "Output: $version_output"
-          exit 1
-        fi
-
-        expected_version="${actualBinaryVersion}"
-        if [ "$detected_version" != "$expected_version" ]; then
-          echo "Error: Binary version mismatch!"
-          echo "  Expected: $expected_version"
-          echo "  Detected: $detected_version"
-          echo "  Manifest version: ${version}"
-          exit 1
-        fi
-
-        echo "✓ Version check passed: binary reports $detected_version (manifest: ${version})"
-
-        # Now wrap the binary with environment variables
-        wrapProgram $out/bin/.claude-unwrapped \
+        wrapProgram $out/bin/.claude-wrapped \
           --set DISABLE_AUTOUPDATER 1 \
           --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
           --set DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
           --set DISABLE_TELEMETRY 1
-        mv $out/bin/.claude-unwrapped $out/bin/claude
+        mv $out/bin/.claude-wrapped $out/bin/claude
       '';
+
+      doInstallCheck = true;
+      nativeInstallCheckInputs = with pkgs; [
+        writableTmpDirAsHomeHook
+        versionCheckHook
+      ];
+      versionCheckKeepEnvironment = ["HOME"];
+      versionCheckProgramArg = "--version";
 
       passthru = {
         updateScript = ./update;
@@ -90,10 +67,7 @@
   # The packages that are tagged releases
   taggedPackages =
     lib.attrsets.mapAttrs
-    (_: releaseData:
-      mkBinaryInstall {
-        inherit (releaseData.${system}) version url sha256 actualBinaryVersion;
-      })
+    (_: v: mkBinaryInstall {inherit (v.${system}) version url sha256;})
     (lib.attrsets.filterAttrs
       (_: v: (builtins.hasAttr system v) && (v.${system}.url != null) && (v.${system}.sha256 != null))
       sources);

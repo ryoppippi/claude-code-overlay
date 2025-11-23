@@ -20,53 +20,6 @@ SHA256_LINUX_ARM64=$(echo "$MANIFEST" | jq -r '.platforms["linux-arm64"].checksu
 SHA256_DARWIN_X64=$(echo "$MANIFEST" | jq -r '.platforms["darwin-x64"].checksum')
 SHA256_DARWIN_ARM64=$(echo "$MANIFEST" | jq -r '.platforms["darwin-arm64"].checksum')
 
-# Detect actual binary version for each platform
-echo "Detecting actual binary versions for each platform..."
-
-detect_version() {
-  local url=$1
-  local platform_name=$2
-  local temp_bin=$(mktemp)
-
-  echo "Checking $platform_name..." >&2
-  curl -s "$url" -o "$temp_bin"
-  chmod +x "$temp_bin"
-
-  # Try to execute directly first (works for native platform)
-  local version=$("$temp_bin" --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
-
-  # If direct execution fails, try Docker for Linux binaries
-  if [ -z "$version" ] && command -v docker &> /dev/null; then
-    case "$platform_name" in
-      linux-x64)
-        echo "  Direct execution failed, trying Docker (linux/amd64)..." >&2
-        docker run --rm --platform linux/amd64 -v "$temp_bin:/tmp/claude:ro" ubuntu:22.04 sh -c "apt-get update -qq && apt-get install -qq -y ca-certificates > /dev/null 2>&1 && /tmp/claude --version 2>&1" > /tmp/docker_output 2>&1 || true
-        version=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/docker_output | head -1 || echo "unknown")
-        rm -f /tmp/docker_output
-        ;;
-      linux-arm64)
-        echo "  Direct execution failed, trying Docker (linux/arm64)..." >&2
-        docker run --rm --platform linux/arm64 -v "$temp_bin:/tmp/claude:ro" ubuntu:22.04 sh -c "apt-get update -qq && apt-get install -qq -y ca-certificates > /dev/null 2>&1 && /tmp/claude --version 2>&1" > /tmp/docker_output 2>&1 || true
-        version=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/docker_output | head -1 || echo "unknown")
-        rm -f /tmp/docker_output
-        ;;
-      *)
-        version="unknown"
-        ;;
-    esac
-  fi
-
-  rm -f "$temp_bin"
-
-  echo "  $platform_name: $version" >&2
-  echo "$version"
-}
-
-ACTUAL_VERSION_DARWIN_ARM64=$(detect_version "${BASE_URL}/${VERSION}/darwin-arm64/claude" "darwin-arm64")
-ACTUAL_VERSION_DARWIN_X64=$(detect_version "${BASE_URL}/${VERSION}/darwin-x64/claude" "darwin-x64")
-ACTUAL_VERSION_LINUX_X64=$(detect_version "${BASE_URL}/${VERSION}/linux-x64/claude" "linux-x64")
-ACTUAL_VERSION_LINUX_ARM64=$(detect_version "${BASE_URL}/${VERSION}/linux-arm64/claude" "linux-arm64")
-
 echo "Linux x64 SHA256: $SHA256_LINUX_X64"
 echo "Linux arm64 SHA256: $SHA256_LINUX_ARM64"
 echo "Darwin x64 SHA256: $SHA256_DARWIN_X64"
@@ -83,41 +36,33 @@ NEW_ENTRY=$(jq -n \
   --arg version "$VERSION" \
   --arg url_linux_x64 "$URL_LINUX_X64" \
   --arg sha256_linux_x64 "$SHA256_LINUX_X64" \
-  --arg actual_version_linux_x64 "$ACTUAL_VERSION_LINUX_X64" \
   --arg url_linux_arm64 "$URL_LINUX_ARM64" \
   --arg sha256_linux_arm64 "$SHA256_LINUX_ARM64" \
-  --arg actual_version_linux_arm64 "$ACTUAL_VERSION_LINUX_ARM64" \
   --arg url_darwin_x64 "$URL_DARWIN_X64" \
   --arg sha256_darwin_x64 "$SHA256_DARWIN_X64" \
-  --arg actual_version_darwin_x64 "$ACTUAL_VERSION_DARWIN_X64" \
   --arg url_darwin_arm64 "$URL_DARWIN_ARM64" \
   --arg sha256_darwin_arm64 "$SHA256_DARWIN_ARM64" \
-  --arg actual_version_darwin_arm64 "$ACTUAL_VERSION_DARWIN_ARM64" \
   '{
     ($version): {
       "x86_64-linux": {
         "url": $url_linux_x64,
         "version": $version,
-        "sha256": $sha256_linux_x64,
-        "actualBinaryVersion": $actual_version_linux_x64
+        "sha256": $sha256_linux_x64
       },
       "aarch64-linux": {
         "url": $url_linux_arm64,
         "version": $version,
-        "sha256": $sha256_linux_arm64,
-        "actualBinaryVersion": $actual_version_linux_arm64
+        "sha256": $sha256_linux_arm64
       },
       "x86_64-darwin": {
         "url": $url_darwin_x64,
         "version": $version,
-        "sha256": $sha256_darwin_x64,
-        "actualBinaryVersion": $actual_version_darwin_x64
+        "sha256": $sha256_darwin_x64
       },
       "aarch64-darwin": {
         "url": $url_darwin_arm64,
         "version": $version,
-        "sha256": $sha256_darwin_arm64,
-        "actualBinaryVersion": $actual_version_darwin_arm64
+        "sha256": $sha256_darwin_arm64
       }
     }
   }')

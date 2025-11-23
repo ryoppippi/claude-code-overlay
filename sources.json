@@ -3,26 +3,22 @@
     "aarch64-darwin": {
       "url": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.0.50/darwin-arm64/claude",
       "version": "2.0.50",
-      "sha256": "a8d06f2ddb2f09817eca397c11efdd960e7e25638d17c59760f1cfd371d04430",
-      "actualBinaryVersion": "2.0.50"
+      "sha256": "a8d06f2ddb2f09817eca397c11efdd960e7e25638d17c59760f1cfd371d04430"
     },
     "x86_64-darwin": {
       "url": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.0.50/darwin-x64/claude",
       "version": "2.0.50",
-      "sha256": "3ec59e209e45f86f0f63e08736142c220e86c5e79dffa21ca8392e187cbf6bce",
-      "actualBinaryVersion": "2.0.50"
+      "sha256": "3ec59e209e45f86f0f63e08736142c220e86c5e79dffa21ca8392e187cbf6bce"
     },
     "x86_64-linux": {
       "url": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.0.50/linux-x64/claude",
       "version": "2.0.50",
-      "sha256": "2c3399e8a22e607c61ae007b3ffe11633648cda195e790568ec75f19cf550833",
-      "actualBinaryVersion": "2.0.50"
+      "sha256": "2c3399e8a22e607c61ae007b3ffe11633648cda195e790568ec75f19cf550833"
     },
     "aarch64-linux": {
       "url": "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.0.50/linux-arm64/claude",
       "version": "2.0.50",
-      "sha256": "1488d9c228c0c97f651c6fcb37053c5dffa86f31f77b232d47e61bff7da5622e",
-      "actualBinaryVersion": "2.0.50"
+      "sha256": "1488d9c228c0c97f651c6fcb37053c5dffa86f31f77b232d47e61bff7da5622e"
     }
   }
 }
