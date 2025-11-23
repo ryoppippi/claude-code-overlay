@@ -16,7 +16,13 @@
 
       pname = "claude";
       src = pkgs.fetchurl {inherit url sha256;};
-      nativeBuildInputs = [pkgs.makeWrapper];
+      nativeBuildInputs =
+        [pkgs.makeWrapper]
+        ++ lib.optionals pkgs.stdenv.isLinux [pkgs.autoPatchelfHook];
+      buildInputs = lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+        stdenv.cc.cc.lib
+        zlib
+      ]);
       dontUnpack = true;
       dontConfigure = true;
       dontBuild = true;
