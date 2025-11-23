@@ -11,7 +11,7 @@ jobs:
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: ./update.sh
+      - run: ./update
       - run: "git config user.email 41898282+github-actions[bot]@users.noreply.github.com"
       - run: "git config user.name github-actions[bot]"
       - run: "git add -A"
