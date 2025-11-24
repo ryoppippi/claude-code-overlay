@@ -183,12 +183,12 @@ in
 ## Available Packages
 
 - `default` - Latest stable version
-- `<version>` - Specific version (e.g., `2.0.50`)
+- `claude` - Claude Code CLI package
 
 ## How It Works
 
-1. The `update` script fetches the latest stable version from Anthropic's release server
-2. It retrieves the manifest.json containing SHA256 checksums for all platforms
+1. The `update.py` script fetches the latest stable version from Anthropic's release server
+2. It uses `nix-prefetch-url` to fetch SHA256 checksums for all platforms
 3. GitHub Actions runs the update script hourly and commits any changes
 4. The flake provides pre-built binaries for all supported platforms
 
