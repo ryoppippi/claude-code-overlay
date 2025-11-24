@@ -3,3 +3,4 @@ result-*
 sources.old.json
 .direnv
 .pre-commit-config.yaml
+test-linux.sh
