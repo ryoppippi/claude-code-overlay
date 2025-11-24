@@ -70,6 +70,7 @@
       apps = rec {
         default = apps.claude;
         claude = flake-utils.lib.mkApp {drv = packages.default;};
+        fmt = flake-utils.lib.mkApp {drv = treefmtEval.config.build.wrapper;};
       };
 
       # nix fmt

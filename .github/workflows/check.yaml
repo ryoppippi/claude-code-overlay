@@ -14,8 +14,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Check Nix formatting
-        run: nix fmt -- --check .
-      - name: Run pre-commit checks
+        run: nix run .#fmt -- --fail-on-change
+      - name: Run git-hooks and formatting checks
         run: nix flake check -L
 
   build-and-test:
