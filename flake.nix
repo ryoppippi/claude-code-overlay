@@ -5,16 +5,16 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
 
-    # Pre-commit hooks
-    pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
+    # Git hooks
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Used for shell.nix
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
+    # Treefmt for formatting
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -22,7 +22,8 @@
     self,
     nixpkgs,
     flake-utils,
-    pre-commit-hooks,
+    git-hooks,
+    treefmt-nix,
     ...
   }: let
     systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
@@ -34,10 +35,20 @@
             "claude"
           ];
       };
+
+      # Treefmt configuration
+      treefmtEval = treefmt-nix.lib.evalModule pkgs {
+        projectRootFile = "flake.nix";
+        programs = {
+          alejandra.enable = true;
+          deadnix.enable = true;
+          statix.enable = true;
+        };
+      };
     in rec {
-      # Pre-commit hooks configuration
+      # Git hooks configuration
       checks = {
-        pre-commit-check = pre-commit-hooks.lib.${system}.run {
+        git-hooks-check = git-hooks.lib.${system}.run {
           src = ./.;
           hooks = {
             alejandra.enable = true;
@@ -45,7 +56,9 @@
             statix.enable = true;
           };
         };
+        formatting = treefmtEval.config.build.check self;
       };
+
       # The packages exported by the Flake:
       packages = rec {
         claude = pkgs.callPackage ./default.nix {};
@@ -60,18 +73,15 @@
       };
 
       # nix fmt
-      formatter = pkgs.alejandra;
+      formatter = treefmtEval.config.build.wrapper;
 
       devShells.default = pkgs.mkShell {
-        inherit (self.checks.${system}.pre-commit-check) shellHook;
+        inherit (self.checks.${system}.git-hooks-check) shellHook;
         nativeBuildInputs = with pkgs; [
           curl
           jq
         ];
       };
-
-      # For compatibility with older versions of the `nix` binary
-      devShell = self.devShells.${system}.default;
     });
   in
     outputs
