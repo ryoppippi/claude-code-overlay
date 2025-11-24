@@ -41,10 +41,11 @@
       '';
 
       doInstallCheck = true;
-      nativeInstallCheckInputs = with pkgs; [
-        writableTmpDirAsHomeHook
-        versionCheckHook
-      ];
+      nativeInstallCheckInputs = with pkgs;
+        [writableTmpDirAsHomeHook]
+        # versionCheckHook is disabled on Linux due to a bun bug where
+        # `claude --version` incorrectly reports bun's version instead of Claude Code's version
+        ++ lib.optionals pkgs.stdenv.isDarwin [versionCheckHook];
       versionCheckKeepEnvironment = ["HOME"];
       versionCheckProgramArg = "--version";
 
