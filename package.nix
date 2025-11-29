@@ -7,6 +7,7 @@
   zlib,
   writableTmpDirAsHomeHook,
   versionCheckHook,
+  additionalPaths ? [],
 }: let
   sourcesData = lib.importJSON ./sources.json;
   inherit (sourcesData) version;
@@ -15,6 +16,10 @@
   source =
     sources.${stdenv.hostPlatform.system}
     or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
+
+  additionalOptions =
+    lib.optionalString (additionalPaths != [])
+    "--prefix PATH : ${builtins.concatStringsSep ":" additionalPaths}";
 in
   stdenv.mkDerivation rec {
     pname = "claude";
@@ -43,7 +48,7 @@ in
 
     # Wrap the binary with environment variables to disable telemetry and auto-updates
     postFixup = ''
-      wrapProgram $out/bin/claude \
+      wrapProgram $out/bin/claude ${additionalOptions} \
         --set DISABLE_AUTOUPDATER 1 \
         --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
         --set DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
