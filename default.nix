@@ -1,1 +1,6 @@
-{pkgs, ...}: pkgs.callPackage ./package.nix {}
+{
+  pkgs,
+  additionalPaths ? [],
+  ...
+}:
+pkgs.callPackage ./package.nix {inherit additionalPaths;}

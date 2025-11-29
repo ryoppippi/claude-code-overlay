@@ -11,6 +11,7 @@ This overlay downloads binaries directly from Anthropic's distribution servers, 
 - ✅ Direct downloads from official Anthropic servers
 - ✅ SHA256 checksum verification
 - ✅ Flake and non-flake support
+- ✅ Home-manager module
 - ✅ Binary cache via [Cachix](https://app.cachix.org/cache/ryoppippi) for faster builds
 
 ## Why Use This Overlay?
@@ -152,7 +153,43 @@ Then use `pkgs.claude-code` in your configuration after adding the overlay to yo
 }
 ```
 
-#### Add to home-manager
+#### Add to home-manager (using module)
+
+The home-manager module provides a package replacement and a convenient way to install Claude Code with proper symlink setup. On Linux, it automatically creates a symlink at `~/.local/bin/claude` to avoid "claude command not found" warnings (see [#2](https://github.com/ryoppippi/claude-code-overlay/issues/2))
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    home-manager.url = "github:nix-community/home-manager";
+    claude-code-overlay.url = "github:ryoppippi/claude-code-overlay";
+  };
+
+  outputs = { nixpkgs, home-manager, claude-code-overlay, ... }: {
+    homeConfigurations."user@hostname" = home-manager.lib.homeManagerConfiguration {
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude" ];
+      };
+      modules = [
+        claude-code-overlay.homeManagerModules.default
+        {
+          programs.claude-code.enable = true;
+        }
+      ];
+    };
+  };
+}
+```
+
+**Additional Module options:**
+- `programs.claude-code.enableLocalBinSymlink` - Creates a symbolic link at `~/.local/bin/claude` (default: `true` on Linux, `false` on macOS)
+
+Other default options are inherited from [the official options](https://github.com/nix-community/home-manager/blob/master/modules/programs/claude-code.nix).
+
+#### Add to home-manager (using overlay only)
+
+If you prefer not to use the module, you can use the overlay directly:
 
 ```nix
 {
