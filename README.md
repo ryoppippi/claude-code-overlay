@@ -187,6 +187,51 @@ The home-manager module provides a package replacement and a convenient way to i
 
 Other default options are inherited from [the official options](https://github.com/nix-community/home-manager/blob/master/modules/programs/claude-code.nix).
 
+#### Add to devShell
+
+Use Claude Code in a project-specific development environment:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    claude-code-overlay.url = "github:ryoppippi/claude-code-overlay";
+  };
+
+  outputs = { nixpkgs, claude-code-overlay, ... }:
+    let
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      devShells = forAllSystems (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude" ];
+            overlays = [ claude-code-overlay.overlays.default ];
+          };
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.claude-code
+              # Add other development tools here
+            ];
+          };
+        }
+      );
+    };
+}
+```
+
+Then run:
+
+```bash
+nix develop
+claude --version
+```
+
 #### Add to home-manager (using overlay only)
 
 If you prefer not to use the module, you can use the overlay directly:
