@@ -3,36 +3,43 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = {
+  outputs = inputs @ {
+    self,
     nixpkgs,
-    flake-utils,
+    flake-parts,
     ...
-  }: let
-    systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
-    outputs = flake-utils.lib.eachSystem systems (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfreePredicate = pkg:
-          builtins.elem (nixpkgs.lib.getName pkg) [
-            "claude"
-          ];
-      };
-    in {
-      packages = rec {
-        claude = pkgs.callPackage ./default.nix {};
-        default = claude;
-      };
-    });
-  in
-    outputs
-    // {
-      overlays.default = _final: prev: {
-        claude-code = outputs.packages.${prev.system}.default;
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+
+      perSystem = {
+        pkgs,
+        system,
+        ...
+      }: {
+        _module.args.pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfreePredicate = pkg:
+            builtins.elem (nixpkgs.lib.getName pkg) [
+              "claude"
+            ];
+        };
+
+        packages = rec {
+          claude = pkgs.callPackage ./default.nix {};
+          default = claude;
+        };
       };
 
-      homeManagerModules.default = import ./home-module.nix outputs;
+      flake = {
+        overlays.default = _final: prev: {
+          claude-code = self.packages.${prev.system}.default;
+        };
+
+        homeManagerModules.default = import ./home-module.nix self;
+      };
     };
 }

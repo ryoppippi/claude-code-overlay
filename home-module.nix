@@ -1,11 +1,11 @@
-outputs: {
+self: {
   config,
   lib,
   pkgs,
   ...
 }: let
   cfg = config.programs.claude-code;
-  package = outputs.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  package = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in {
   options.programs.claude-code = {
     enableLocalBinSymlink = lib.mkOption {
