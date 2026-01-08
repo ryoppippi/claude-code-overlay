@@ -16,45 +16,54 @@
     };
   };
 
-  outputs = inputs @ {
-    flake-parts,
-    git-hooks,
-    treefmt-nix,
-    ...
-  }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
-      systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+  outputs =
+    inputs@{
+      flake-parts,
+      git-hooks,
+      treefmt-nix,
+      ...
+    }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
-      perSystem = {
-        pkgs,
-        self',
-        system,
-        ...
-      }: let
-        treefmtEval = treefmt-nix.lib.evalModule pkgs {
-          projectRootFile = "flake.nix";
-          programs = {
-            nixfmt.enable = true;
-            deadnix.enable = true;
-            statix.enable = true;
-          };
-        };
-      in {
-        checks = {
-          git-hooks-check = git-hooks.lib.${system}.run {
-            src = ./..;
-            hooks = {
+      perSystem =
+        {
+          pkgs,
+          self',
+          system,
+          ...
+        }:
+        let
+          treefmtEval = treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+            programs = {
+              nixfmt.enable = true;
               deadnix.enable = true;
               statix.enable = true;
             };
           };
-        };
+        in
+        {
+          checks = {
+            git-hooks-check = git-hooks.lib.${system}.run {
+              src = ./..;
+              hooks = {
+                deadnix.enable = true;
+                statix.enable = true;
+              };
+            };
+          };
 
-        formatter = treefmtEval.config.build.wrapper;
+          formatter = treefmtEval.config.build.wrapper;
 
-        devShells.default = pkgs.mkShell {
-          inherit (self'.checks.git-hooks-check) shellHook;
+          devShells.default = pkgs.mkShell {
+            inherit (self'.checks.git-hooks-check) shellHook;
+          };
         };
-      };
     };
 }
