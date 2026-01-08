@@ -57,8 +57,10 @@ in
 
     doInstallCheck = true;
 
-    # Custom version check using strings command instead of running the binary
-    # This avoids the "TypeError: failed to initialize Segmenter" error in Nix sandbox
+    # Workaround: Custom version check using strings command instead of running the binary
+    # The standard versionCheckHook fails with "TypeError: failed to initialize Segmenter" in Nix sandbox.
+    # This workaround extracts version string from the binary without executing it.
+    # Note: This is not a documented nixpkgs pattern, but a practical workaround for this specific issue.
     # See: https://github.com/ryoppippi/claude-code-overlay/issues/5
     installCheckPhase = let
       inherit (lib) pipe escapeRegex escapeShellArg;
