@@ -5,8 +5,6 @@
   makeWrapper,
   autoPatchelfHook,
   zlib,
-  writableTmpDirAsHomeHook,
-  versionCheckHook,
   additionalPaths ? [],
 }: let
   sourcesData = lib.importJSON ./sources.json;
@@ -58,12 +56,28 @@ in
     dontStrip = true; # to not mess with the bun runtime
 
     doInstallCheck = true;
-    nativeInstallCheckInputs = [
-      writableTmpDirAsHomeHook
-      versionCheckHook
-    ];
-    versionCheckKeepEnvironment = ["HOME"];
-    versionCheckProgramArg = "--version";
+
+    # Custom version check using strings command instead of running the binary
+    # This avoids the "TypeError: failed to initialize Segmenter" error in Nix sandbox
+    # See: https://github.com/ryoppippi/claude-code-overlay/issues/5
+    installCheckPhase = let
+      inherit (lib) pipe escapeRegex escapeShellArg;
+      escapedVersion = pipe version [
+        escapeRegex
+        escapeShellArg
+      ];
+    in ''
+      runHook preInstallCheck
+
+      if strings $out/bin/claude | grep -q ${escapedVersion}; then
+        echo "Found version ${version} in binary"
+      else
+        echo "ERROR: Version ${version} not found in binary"
+        exit 1
+      fi
+
+      runHook postInstallCheck
+    '';
 
     passthru = {
       updateScript = ./update.ts;
