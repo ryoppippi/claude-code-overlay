@@ -61,7 +61,7 @@
 
           formatter = treefmtEval.config.build.wrapper;
 
-          devShells.default = pkgs.mkShell {
+          devShells.default = pkgs.mkShellNoCC {
             inherit (self'.checks.git-hooks-check) shellHook;
           };
         };
