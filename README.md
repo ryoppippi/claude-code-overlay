@@ -90,10 +90,47 @@ This overlay provides pre-built binaries via [Cachix](https://app.cachix.org/cac
 
 ### Setup Cachix
 
-Add the `ryoppippi` cache to your Nix configuration:
+**Option 1: Using Cachix CLI**
 
 ```bash
 cachix use ryoppippi
+```
+
+**Option 2: Manual Configuration**
+
+Add to your Nix configuration:
+
+```nix
+# NixOS (configuration.nix)
+nix.settings = {
+  substituters = [ "https://ryoppippi.cachix.org" ];
+  trusted-public-keys = [ "ryoppippi.cachix.org-1:b2LbtWNvJeL/qb1B6TYOMK+apaCps4SCbzlPRfSQIms=" ];
+};
+
+# Or in ~/.config/nix/nix.conf
+# extra-substituters = https://ryoppippi.cachix.org
+# extra-trusted-public-keys = ryoppippi.cachix.org-1:b2LbtWNvJeL/qb1B6TYOMK+apaCps4SCbzlPRfSQIms=
+```
+
+**Option 3: In your flake.nix (for flake consumers)**
+
+```nix
+{
+  nixConfig = {
+    extra-substituters = [ "https://ryoppippi.cachix.org" ];
+    extra-trusted-public-keys = [ "ryoppippi.cachix.org-1:b2LbtWNvJeL/qb1B6TYOMK+apaCps4SCbzlPRfSQIms=" ];
+  };
+
+  # ... rest of your flake
+}
+```
+
+**Option 4: Using devenv**
+
+```nix
+{
+  cachix.pull = [ "ryoppippi" ];
+}
 ```
 
 ## Usage
