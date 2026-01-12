@@ -2,7 +2,7 @@
 
 A Nix flake overlay that provides pre-built Claude Code CLI binaries from official Anthropic releases.
 
-This overlay downloads binaries directly from Anthropic's distribution servers, similar to [mitchellh/zig-overlay](https://github.com/mitchellh/zig-overlay).
+This overlay downloads binaries directly from Anthropic's distribution servers.
 
 ## Features
 
