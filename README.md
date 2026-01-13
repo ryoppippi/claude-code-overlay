@@ -18,14 +18,17 @@ This overlay downloads binaries directly from Anthropic's distribution servers.
 While there are existing Claude Code packages in the Nix ecosystem ([llm-agents.nix](https://github.com/numtide/llm-agents.nix) and [nixpkgs](https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/cl/claude-code/package.nix)), this overlay provides the **official pre-built binary distribution** with several advantages:
 
 ### Performance Benefits
+
 - **Superior Bun performance**: Pre-built binaries compiled with Bun offer better performance than Node.js-based distributions with faster startup times, lower memory usage, and improved execution speed
 
 ### Official Support
+
 - **Recommended by Anthropic**: The official Claude Code documentation recommends using the pre-built binary distribution for optimal performance
 - **Direct from official distribution**: Binaries downloaded directly from Anthropic's servers
 - **Guaranteed compatibility**: Official builds are tested and verified by Anthropic
 
 ### Additional Benefits
+
 - **Faster updates**: Automated hourly checks ensure you get the latest version quickly
 - **Consistent behaviour**: Same binaries used across all platforms match official installation methods
 - **Simplified maintenance**: No need to rebuild from source or manage runtime dependencies
@@ -41,6 +44,7 @@ Claude Code is distributed under an unfree licence. You must explicitly allow un
 The safest approach - only allows Claude Code specifically:
 
 **For NixOS** (`configuration.nix`):
+
 ```nix
 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
   "claude"
@@ -48,6 +52,7 @@ nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
 ```
 
 **For home-manager** (`home.nix`):
+
 ```nix
 nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
   "claude"
@@ -55,6 +60,7 @@ nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
 ```
 
 **For standalone config** (`~/.config/nixpkgs/config.nix`):
+
 ```nix
 {
   allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
@@ -399,6 +405,7 @@ nix develop ./dev
 ```
 
 This automatically installs git pre-commit hooks that run:
+
 - **nixfmt-rfc-style** - Nix code formatter (RFC 166)
 - **deadnix** - Dead code detection
 - **statix** - Nix linter
@@ -436,10 +443,10 @@ nix flake check ./dev
 
 Both this overlay and llm-agents.nix provide Claude Code packages using the official pre-built binaries. The main differences are:
 
-| Feature | claude-code-overlay | llm-agents.nix |
-|---------|---------------------|----------------|
-| **Scope** | Claude Code only | 50+ AI/LLM tools |
-| **Update frequency** | Hourly | Daily |
+| Feature              | claude-code-overlay | llm-agents.nix   |
+| -------------------- | ------------------- | ---------------- |
+| **Scope**            | Claude Code only    | 50+ AI/LLM tools |
+| **Update frequency** | Hourly              | Daily            |
 
 Choose **claude-code-overlay** if you want faster updates. For other AI/LLM tools (Gemini CLI, OpenCode, etc.), we recommend using **llm-agents.nix**. Both can be used together.
 

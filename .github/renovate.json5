@@ -1,54 +1,44 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-  ],
-  "timezone": "Asia/Tokyo",
-  "schedule": [
-    "every 1 hour",
-  ],
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "before 3am on Monday",
-    ],
-  },
-  "nix": {
-    "enabled": true,
-  },
-  // GitHub Actions updates
-  "github-actions": {
-    "enabled": true,
-  },
-  "packageRules": [
-    {
-      "matchManagers": ["nix"],
-      "matchPackageNames": ["nixpkgs"],
-      "schedule": [
-        "every weekend",
-      ],
-    },
-    // Auto-merge for GitHub Actions
-    {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
-    },
-    // Group flake.lock updates
-    {
-      "matchManagers": ["nix"],
-      "matchFiles": ["flake.lock"],
-      "groupName": "nix flake dependencies",
-      "schedule": [
-        "before 3am on Monday",
-      ],
-    },
-  ],
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 10,
-  "semanticCommits": "enabled",
-  "commitMessagePrefix": "chore(deps):",
-  "labels": ["dependencies"],
+	$schema: 'https://docs.renovatebot.com/renovate-schema.json',
+	extends: ['config:recommended'],
+	timezone: 'Asia/Tokyo',
+	schedule: ['every 1 hour'],
+	lockFileMaintenance: {
+		enabled: true,
+		schedule: ['before 3am on Monday'],
+	},
+	nix: {
+		enabled: true,
+	},
+	// GitHub Actions updates
+	'github-actions': {
+		enabled: true,
+	},
+	packageRules: [
+		{
+			matchManagers: ['nix'],
+			matchPackageNames: ['nixpkgs'],
+			schedule: ['every weekend'],
+		},
+		// Auto-merge for GitHub Actions
+		{
+			matchManagers: ['github-actions'],
+			matchUpdateTypes: ['minor', 'patch', 'pin', 'digest'],
+			automerge: true,
+			automergeType: 'pr',
+			automergeStrategy: 'squash',
+		},
+		// Group flake.lock updates
+		{
+			matchManagers: ['nix'],
+			matchFiles: ['flake.lock'],
+			groupName: 'nix flake dependencies',
+			schedule: ['before 3am on Monday'],
+		},
+	],
+	prConcurrentLimit: 5,
+	prHourlyLimit: 10,
+	semanticCommits: 'enabled',
+	commitMessagePrefix: 'chore(deps):',
+	labels: ['dependencies'],
 }

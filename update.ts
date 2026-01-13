@@ -13,10 +13,11 @@
  * https://github.com/numtide/nix-ai-tools/blob/91132d4e72ed07374b9d4a718305e9282753bac9/packages/coderabbit-cli/update.py
  */
 
-import { $ } from "bun";
-import { join } from "node:path";
+import { $ } from 'bun';
+import { join } from 'node:path';
 
-const BASE_URL = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
+const BASE_URL =
+	'https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases';
 
 // Type definitions
 interface ManifestPlatform {
@@ -32,10 +33,10 @@ interface Manifest {
 
 // Platform mappings (Nix platform -> manifest platform)
 const platforms = {
-	"x86_64-linux": "linux-x64",
-	"aarch64-linux": "linux-arm64",
-	"x86_64-darwin": "darwin-x64",
-	"aarch64-darwin": "darwin-arm64",
+	'x86_64-linux': 'linux-x64',
+	'aarch64-linux': 'linux-arm64',
+	'x86_64-darwin': 'darwin-x64',
+	'aarch64-darwin': 'darwin-arm64',
 } as const;
 
 type NixPlatform = keyof typeof platforms;
@@ -45,9 +46,9 @@ type NixPlatform = keyof typeof platforms;
  * The GCS stable endpoint may lag behind npm releases.
  */
 async function fetchClaudeVersion(): Promise<string> {
-	const url = "https://registry.npmjs.org/@anthropic-ai/claude-code/latest";
+	const url = 'https://registry.npmjs.org/@anthropic-ai/claude-code/latest';
 	const response = await fetch(url);
-	const json = await response.json() as { version: string };
+	const json = (await response.json()) as { version: string };
 	return json.version;
 }
 
@@ -79,7 +80,7 @@ interface SourcesJSON {
  * Get the current version from sources.json.
  */
 async function getCurrentVersion(): Promise<string | null> {
-	const sourcesPath = join(import.meta.dir, "sources.json");
+	const sourcesPath = join(import.meta.dir, 'sources.json');
 	const sources: SourcesJSON = await Bun.file(sourcesPath).json();
 	return sources.version;
 }
@@ -87,8 +88,11 @@ async function getCurrentVersion(): Promise<string | null> {
 /**
  * Update sources.json with new version and hashes.
  */
-async function updateSourcesJSON(version: string, hashes: Record<NixPlatform, string>): Promise<void> {
-	const sourcesPath = join(import.meta.dir, "sources.json");
+async function updateSourcesJSON(
+	version: string,
+	hashes: Record<NixPlatform, string>,
+): Promise<void> {
+	const sourcesPath = join(import.meta.dir, 'sources.json');
 
 	const platformsData: Record<NixPlatform, { url: string; hash: string }> = {} as any;
 
@@ -105,7 +109,7 @@ async function updateSourcesJSON(version: string, hashes: Record<NixPlatform, st
 		platforms: platformsData,
 	};
 
-	await Bun.write(sourcesPath, JSON.stringify(sourcesData, null, 2) + "\n");
+	await Bun.write(sourcesPath, JSON.stringify(sourcesData, null, 2) + '\n');
 }
 
 // Main execution
@@ -118,7 +122,7 @@ console.log(`Latest version: ${latestVersion}`);
 console.log(`Updating claude from ${currentVersion} to ${latestVersion}`);
 
 // Fetch manifest and extract hashes
-console.log("Fetching manifest.json...");
+console.log('Fetching manifest.json...');
 const manifest = await fetchManifest(latestVersion);
 const hashes: Record<NixPlatform, string> = {} as Record<NixPlatform, string>;
 
