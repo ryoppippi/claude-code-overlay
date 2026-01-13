@@ -32,7 +32,5 @@
     overlays.default = _final: prev: {
       claude-code = self.packages.${prev.system}.default;
     };
-
-    homeManagerModules.default = import ./home-module.nix self;
   };
 }
