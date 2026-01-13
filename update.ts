@@ -1,6 +1,6 @@
 #!/usr/bin/env nix
 /*
-#! nix shell --inputs-from .# nixpkgs#bun -c bun
+#! nix shell --inputs-from .# nixpkgs#bun nixpkgs#oxfmt -c bun
 */
 
 /**
@@ -138,3 +138,8 @@ console.log();
 // Update sources.json
 await updateSourcesJSON(latestVersion, hashes);
 console.log(`Updated claude to version ${latestVersion}`);
+
+// Format with oxfmt
+console.log('Formatting with oxfmt...');
+await $`oxfmt sources.json`.quiet();
+console.log('Done!');
