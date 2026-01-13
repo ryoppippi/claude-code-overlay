@@ -45,6 +45,7 @@ in
     '';
 
     # Wrap the binary with environment variables to disable telemetry and auto-updates
+    # See: https://github.com/anthropics/claude-code/issues/15592
     postFixup = ''
       wrapProgram $out/bin/claude ${additionalOptions} \
         --set DISABLE_AUTOUPDATER 1 \
