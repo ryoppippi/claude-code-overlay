@@ -3,23 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-    };
-
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
-    inputs@{
+    {
       self,
       nixpkgs,
-      flake-parts,
-      treefmt-nix,
     }:
     let
       systems = [
@@ -28,18 +17,13 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
+      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
     in
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      inherit systems;
-
-      imports = [
-        treefmt-nix.flakeModule
-      ];
-
-      perSystem =
-        { pkgs, system, ... }:
+    {
+      packages = forAllSystems (
+        system:
         let
-          pkgsFor = import nixpkgs {
+          pkgs = import nixpkgs {
             inherit system;
             config.allowUnfreePredicate =
               pkg:
@@ -49,34 +33,13 @@
           };
         in
         {
-          packages = {
-            claude = pkgsFor.callPackage ./default.nix { };
-            default = self.packages.${system}.claude;
-          };
+          claude = pkgs.callPackage ./default.nix { };
+          default = self.packages.${system}.claude;
+        }
+      );
 
-          treefmt = {
-            projectRootFile = "flake.nix";
-            settings = {
-              global.excludes = [
-                ".git/**"
-                "*.lock"
-                "*.nix"
-              ];
-              formatter = {
-                oxfmt = {
-                  command = "${pkgs.oxfmt}/bin/oxfmt";
-                  options = [ "--no-error-on-unmatched-pattern" ];
-                  includes = [ "*" ];
-                };
-              };
-            };
-          };
-        };
-
-      flake = {
-        overlays.default = _final: prev: {
-          claude-code = self.packages.${prev.system}.default;
-        };
+      overlays.default = _final: prev: {
+        claude-code = self.packages.${prev.system}.default;
       };
     };
 }
