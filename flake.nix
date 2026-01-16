@@ -39,7 +39,7 @@
       );
 
       overlays.default = _final: prev: {
-        claude-code = self.packages.${prev.system}.default;
+        claude-code = self.packages.${prev.stdenv.hostPlatform.system}.default;
       };
     };
 }
