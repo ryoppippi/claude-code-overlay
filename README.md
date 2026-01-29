@@ -364,7 +364,23 @@ in
 
 ## Available Packages
 
-When using the overlay, the package is available as `pkgs.claude-code`.
+The overlay provides two package variants:
+
+| Package | Description |
+| ------- | ----------- |
+| `pkgs.claude-code` | Default package with GitHub CLI (`gh`) bundled. Recommended for most users as Claude Code frequently uses `gh` for GitHub operations. |
+| `pkgs.claude-code-minimal` | Minimal package without bundled tools. Use this if you want to provide your own `gh` version or don't need GitHub integration. |
+
+### Using claude-code-minimal with custom tools
+
+If you want to use your own version of `gh` or add other tools to the PATH, use `claude-code-minimal` with `additionalPaths`:
+
+```nix
+# In your configuration
+pkgs.claude-code-minimal.override {
+  additionalPaths = [ "${pkgs.gh}/bin" "${pkgs.git}/bin" ];
+}
+```
 
 ## How It Works
 

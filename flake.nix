@@ -17,7 +17,7 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
+      forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
       packages = forAllSystems (
@@ -33,13 +33,17 @@
           };
         in
         {
-          claude = pkgs.callPackage ./default.nix { };
+          claude = pkgs.callPackage ./default.nix {
+            additionalPaths = [ "${pkgs.gh}/bin" ];
+          };
+          claude-minimal = pkgs.callPackage ./default.nix { };
           default = self.packages.${system}.claude;
         }
       );
 
       overlays.default = _final: prev: {
-        claude-code = self.packages.${prev.system}.default;
+        claude-code = self.packages.${prev.system}.claude;
+        claude-code-minimal = self.packages.${prev.system}.claude-minimal;
       };
     };
 }
