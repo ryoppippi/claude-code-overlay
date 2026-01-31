@@ -45,6 +45,7 @@
               nixfmt.enable = true;
               deadnix.enable = true;
               statix.enable = true;
+              typos.enable = true;
             };
           };
         in
@@ -61,8 +62,16 @@
 
           formatter = treefmtEval.config.build.wrapper;
 
+          packages = {
+            inherit (pkgs) typos typos-lsp;
+          };
+
           devShells.default = pkgs.mkShellNoCC {
             inherit (self'.checks.git-hooks-check) shellHook;
+            packages = [
+              self'.packages.typos
+              self'.packages.typos-lsp
+            ];
           };
         };
     };
