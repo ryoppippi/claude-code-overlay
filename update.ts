@@ -13,9 +13,8 @@
  * https://github.com/numtide/nix-ai-tools/blob/91132d4e72ed07374b9d4a718305e9282753bac9/packages/coderabbit-cli/update.py
  */
 
-import { $ } from "bun";
+import { $, Glob, semver } from "bun";
 import { join } from "node:path";
-import { readdirSync } from "node:fs";
 
 const BASE_URL =
   "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
@@ -82,10 +81,12 @@ interface SourcesJSON {
  */
 function getCurrentVersion(): string | null {
   const versionsDir = join(import.meta.dir, "versions");
-  const files = readdirSync(versionsDir).filter((f) => f.endsWith(".json"));
-  if (files.length === 0) return null;
-  const versions = files.map((f) => f.replace(/\.json$/, ""));
-  versions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const glob = new Glob("*.json");
+  const versions = Array.from(glob.scanSync(versionsDir)).map((f) =>
+    f.replace(/\.json$/, ""),
+  );
+  if (versions.length === 0) return null;
+  versions.sort((a, b) => semver.order(a, b));
   return versions[versions.length - 1];
 }
 
