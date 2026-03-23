@@ -59,8 +59,10 @@
             git-hooks-check = git-hooks.lib.${system}.run {
               src = ./..;
               hooks = {
-                deadnix.enable = true;
-                statix.enable = true;
+                treefmt = {
+                  enable = true;
+                  package = treefmtEval.config.build.wrapper;
+                };
               };
             };
           };
