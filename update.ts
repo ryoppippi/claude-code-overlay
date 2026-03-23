@@ -140,7 +140,14 @@ console.log();
 await updateSourcesJSON(latestVersion, hashes);
 console.log(`Updated claude to version ${latestVersion}`);
 
+// Save versioned sources file
+const versionedPath = join(import.meta.dir, "versions", `${latestVersion}.json`);
+const sourcesPath = join(import.meta.dir, "sources.json");
+const sourcesContent = await Bun.file(sourcesPath).text();
+await Bun.write(versionedPath, sourcesContent);
+console.log(`Saved versioned sources to versions/${latestVersion}.json`);
+
 // Format with oxfmt
 console.log("Formatting with oxfmt...");
-await $`oxfmt sources.json`.quiet();
+await $`oxfmt sources.json versions/${latestVersion}.json`.quiet();
 console.log("Done!");

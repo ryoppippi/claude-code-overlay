@@ -6,8 +6,9 @@
   autoPatchelfHook,
   zlib,
   additionalPaths ? [],
+  sourcesFile ? ./sources.json,
 }: let
-  sourcesData = lib.importJSON ./sources.json;
+  sourcesData = lib.importJSON sourcesFile;
   inherit (sourcesData) version;
   sources = sourcesData.platforms;
 

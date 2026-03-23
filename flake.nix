@@ -18,6 +18,11 @@
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+
+      versionFiles = builtins.readDir ./versions;
+      versionNames = builtins.map (f: nixpkgs.lib.removeSuffix ".json" f) (
+        builtins.filter (f: nixpkgs.lib.hasSuffix ".json" f) (builtins.attrNames versionFiles)
+      );
     in
     {
       packages = forAllSystems (
@@ -31,14 +36,29 @@
                 "claude"
               ];
           };
+
+          mkClaude =
+            sourcesFile:
+            pkgs.callPackage ./package.nix {
+              additionalPaths = [ "${pkgs.gh}/bin" ];
+              inherit sourcesFile;
+            };
+
+          mkClaudeMinimal = sourcesFile: pkgs.callPackage ./package.nix { inherit sourcesFile; };
+
+          versionedPackages = builtins.listToAttrs (
+            builtins.map (version: {
+              name = version;
+              value = mkClaude ./versions/${version + ".json"};
+            }) versionNames
+          );
         in
         {
-          claude = pkgs.callPackage ./default.nix {
-            additionalPaths = [ "${pkgs.gh}/bin" ];
-          };
-          claude-minimal = pkgs.callPackage ./default.nix { };
+          claude = mkClaude ./sources.json;
+          claude-minimal = mkClaudeMinimal ./sources.json;
           default = self.packages.${system}.claude;
         }
+        // versionedPackages
       );
 
       overlays.default = _final: prev: {
