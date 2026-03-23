@@ -151,8 +151,5 @@ console.log("Formatting with oxfmt...");
 await $`oxfmt --config ${join(import.meta.dir, ".oxfmtrc.jsonc")} versions/*.json`.quiet();
 console.log("Done!");
 
-// Append version to GITHUB_OUTPUT if running in CI
-const githubOutput = process.env.GITHUB_OUTPUT;
-if (githubOutput) {
-  await $`echo version=${latestVersion} >> ${githubOutput}`.quiet();
-}
+// Print version as the final line for CI consumption
+console.log(latestVersion);
