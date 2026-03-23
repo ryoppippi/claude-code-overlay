@@ -20,7 +20,7 @@ jobs:
       - name: Commit with version
         run: |
           if ! git diff --staged --quiet; then
-            VERSION=$(jq -r '.version' sources.json)
+            VERSION=$(ls versions/*.json | sed 's/.*\///;s/\.json$//' | sort -V | tail -1)
             git commit -m "chore: update claude to $VERSION"
           fi
       - run: 'git push -u origin main'

@@ -15,6 +15,7 @@
 
 import { $ } from "bun";
 import { join } from "node:path";
+import { readdirSync } from "node:fs";
 
 const BASE_URL =
   "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
@@ -70,29 +71,32 @@ async function sha256ToSri(sha256Hex: string): Promise<string> {
   return result.trim();
 }
 
-// Type definition for sources.json
+// Type definition for version sources
 interface SourcesJSON {
   version: string;
   platforms: Record<NixPlatform, { url: string; hash: string }>;
 }
 
 /**
- * Get the current version from sources.json.
+ * Get the current (latest) version from the versions directory.
  */
-async function getCurrentVersion(): Promise<string | null> {
-  const sourcesPath = join(import.meta.dir, "sources.json");
-  const sources: SourcesJSON = await Bun.file(sourcesPath).json();
-  return sources.version;
+function getCurrentVersion(): string | null {
+  const versionsDir = join(import.meta.dir, "versions");
+  const files = readdirSync(versionsDir).filter((f) => f.endsWith(".json"));
+  if (files.length === 0) return null;
+  const versions = files.map((f) => f.replace(/\.json$/, ""));
+  versions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  return versions[versions.length - 1];
 }
 
 /**
- * Update sources.json with new version and hashes.
+ * Write version sources to the versions directory.
  */
-async function updateSourcesJSON(
+async function writeVersionSources(
   version: string,
   hashes: Record<NixPlatform, string>,
 ): Promise<void> {
-  const sourcesPath = join(import.meta.dir, "sources.json");
+  const versionedPath = join(import.meta.dir, "versions", `${version}.json`);
 
   const platformsData: Record<NixPlatform, { url: string; hash: string }> =
     {} as any;
@@ -110,11 +114,11 @@ async function updateSourcesJSON(
     platforms: platformsData,
   };
 
-  await Bun.write(sourcesPath, JSON.stringify(sourcesData, null, 2) + "\n");
+  await Bun.write(versionedPath, JSON.stringify(sourcesData, null, 2) + "\n");
 }
 
 // Main execution
-const currentVersion = await getCurrentVersion();
+const currentVersion = getCurrentVersion();
 const latestVersion = await fetchClaudeVersion();
 
 console.log(`Current version: ${currentVersion}`);
@@ -136,18 +140,11 @@ for (const [nixPlatform, manifestPlatform] of Object.entries(platforms)) {
 
 console.log();
 
-// Update sources.json
-await updateSourcesJSON(latestVersion, hashes);
+// Write versioned sources file
+await writeVersionSources(latestVersion, hashes);
 console.log(`Updated claude to version ${latestVersion}`);
-
-// Save versioned sources file
-const versionedPath = join(import.meta.dir, "versions", `${latestVersion}.json`);
-const sourcesPath = join(import.meta.dir, "sources.json");
-const sourcesContent = await Bun.file(sourcesPath).text();
-await Bun.write(versionedPath, sourcesContent);
-console.log(`Saved versioned sources to versions/${latestVersion}.json`);
 
 // Format with oxfmt
 console.log("Formatting with oxfmt...");
-await $`oxfmt sources.json versions/${latestVersion}.json`.quiet();
+await $`oxfmt versions/${latestVersion}.json`.quiet();
 console.log("Done!");

@@ -23,6 +23,9 @@
       versionNames = builtins.map (f: nixpkgs.lib.removeSuffix ".json" f) (
         builtins.filter (f: nixpkgs.lib.hasSuffix ".json" f) (builtins.attrNames versionFiles)
       );
+      latestVersion = builtins.head (
+        builtins.sort (a: b: builtins.compareVersions a b > 0) versionNames
+      );
     in
     {
       packages = forAllSystems (
@@ -52,10 +55,12 @@
               value = mkClaude ./versions/${version + ".json"};
             }) versionNames
           );
+
+          latestSourcesFile = ./versions/${latestVersion + ".json"};
         in
         {
-          claude = mkClaude ./sources.json;
-          claude-minimal = mkClaudeMinimal ./sources.json;
+          claude = mkClaude latestSourcesFile;
+          claude-minimal = mkClaudeMinimal latestSourcesFile;
           default = self.packages.${system}.claude;
         }
         // versionedPackages

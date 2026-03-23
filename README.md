@@ -371,6 +371,25 @@ The overlay provides two package variants:
 | `pkgs.claude-code` | Default package with GitHub CLI (`gh`) bundled. Recommended for most users as Claude Code frequently uses `gh` for GitHub operations. |
 | `pkgs.claude-code-minimal` | Minimal package without bundled tools. Use this if you want to provide your own `gh` version or don't need GitHub integration. |
 
+### Version Pinning
+
+You can install a specific version of Claude Code by using versioned package attributes:
+
+```nix
+# Use a specific version
+claude-code-overlay.packages.${system}."2.1.81"
+
+# Always use the latest (default behaviour)
+claude-code-overlay.packages.${system}.default
+```
+
+```bash
+# Run a specific version directly
+NIXPKGS_ALLOW_UNFREE=1 nix run --impure 'github:ryoppippi/claude-code-overlay#"2.1.81"'
+```
+
+All versions that have been tracked by this repository are available. See the [`versions/`](./versions) directory for available versions.
+
 ### Using claude-code-minimal with custom tools
 
 If you want to use your own version of `gh` or add other tools to the PATH, use `claude-code-minimal` with `additionalPaths`:
