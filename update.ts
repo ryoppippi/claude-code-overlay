@@ -79,12 +79,13 @@ interface SourcesJSON {
 /**
  * Get the current (latest) version from the versions directory.
  */
-function getCurrentVersion(): string | null {
+async function getCurrentVersion(): Promise<string | null> {
   const versionsDir = join(import.meta.dir, "versions");
   const glob = new Glob("*.json");
-  const versions = Array.from(glob.scanSync(versionsDir)).map((f) =>
-    f.replace(/\.json$/, ""),
-  );
+  const versions: string[] = [];
+  for await (const f of glob.scan(versionsDir)) {
+    versions.push(f.replace(/\.json$/, ""));
+  }
   if (versions.length === 0) return null;
   versions.sort((a, b) => semver.order(a, b));
   return versions[versions.length - 1];
@@ -119,7 +120,7 @@ async function writeVersionSources(
 }
 
 // Main execution
-const currentVersion = getCurrentVersion();
+const currentVersion = await getCurrentVersion();
 const latestVersion = await fetchClaudeVersion();
 
 console.log(`Current version: ${currentVersion}`);
