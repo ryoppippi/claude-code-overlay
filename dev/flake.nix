@@ -47,6 +47,11 @@
               statix.enable = true;
               typos.enable = true;
             };
+            settings.formatter.oxfmt = {
+              command = "${pkgs.oxfmt}/bin/oxfmt";
+              options = [ "--no-error-on-unmatched-pattern" ];
+              includes = [ "*" ];
+            };
           };
         in
         {
