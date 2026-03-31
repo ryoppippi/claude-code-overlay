@@ -6,6 +6,7 @@
   autoPatchelfHook,
   zlib,
   additionalPaths ? [ ],
+  disableTelemetry ? false,
   sourcesFile,
 }:
 let
@@ -46,15 +47,14 @@ stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
-  # Wrap the binary with environment variables to disable telemetry and auto-updates
-  # See: https://github.com/anthropics/claude-code/issues/15592
   postFixup = ''
-    wrapProgram $out/bin/claude ${additionalOptions} \
+    wrapProgram $out/bin/claude \
+      --argv0 claude \
+      ${additionalOptions} \
       --set DISABLE_AUTOUPDATER 1 \
-      --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
-      --set DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
-      --set DISABLE_TELEMETRY 1 \
-      --set DISABLE_INSTALLATION_CHECKS 1
+      --set DISABLE_INSTALLATION_CHECKS 1 \
+      --set-default DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
+      ${lib.optionalString disableTelemetry "--set DISABLE_TELEMETRY 1 --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1"}
   '';
 
   dontStrip = true; # to not mess with the bun runtime
