@@ -14,6 +14,7 @@
  */
 
 import { $, Glob, semver } from 'bun';
+import { unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BASE_URL =
@@ -136,8 +137,27 @@ async function writeVersionSources(
 }
 
 /**
- * Fetch manifest, compute SRI hashes, and write the version file.
- * @returns true if the version was written, false if the manifest was unavailable.
+ * HEAD-check that all platform binaries are downloadable.
+ */
+async function verifyBinaryUrls(version: string): Promise<boolean> {
+	for (const [nixPlatform, manifestPlatform] of Object.entries(platforms)) {
+		const url = `${BASE_URL}/${version}/${manifestPlatform}/claude`;
+		try {
+			const response = await fetch(url, { method: 'HEAD' });
+			if (!response.ok) {
+				console.warn(`  Skipping ${version}: binary 404 for ${nixPlatform}`);
+				return false;
+			}
+		} catch {
+			console.warn(`  Skipping ${version}: binary unreachable for ${nixPlatform}`);
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Fetch manifest, verify binaries exist, compute SRI hashes, and write the version file.
  */
 async function processVersion(version: string): Promise<boolean> {
 	let manifest: Manifest;
@@ -145,6 +165,10 @@ async function processVersion(version: string): Promise<boolean> {
 		manifest = await fetchManifest(version);
 	} catch {
 		console.warn(`  Skipping ${version}: manifest not available`);
+		return false;
+	}
+
+	if (!(await verifyBinaryUrls(version))) {
 		return false;
 	}
 
@@ -171,6 +195,17 @@ const latestVersion = allNpmVersions[allNpmVersions.length - 1];
 
 console.log(`Current version: ${currentVersion}`);
 console.log(`Latest version:  ${latestVersion}`);
+
+// Prune versions whose GCS binaries were yanked after we recorded them.
+console.log('Verifying existing versions...');
+for (const version of existingVersions) {
+	if (!(await verifyBinaryUrls(version))) {
+		const versionPath = join(import.meta.dir, 'versions', `${version}.json`);
+		unlinkSync(versionPath);
+		existingVersions.delete(version);
+		console.log(`  Removed ${version}: binaries no longer available`);
+	}
+}
 
 // Find the earliest existing version to determine the backfill range.
 // Only backfill versions >= the earliest version we already track.
